@@ -1,0 +1,1358 @@
+openapi: 3.0.0
+info:
+  title: Pulikids Childcare Management Platform
+  version: 1.0.0
+  description: This Platform is responsible for managing childcare.
+  contact:
+    name: Ali Akkas
+    email: aliakkas006@gmail.com
+servers:
+  - url: http://localhost:4000
+    description: Development server
+  - url: https://api.example.com
+    description: Production server
+tags:
+  - name: Auth
+    description: Operations related to user authentication
+  - name: Activity Tracking
+    description: Operations related to activity tracking service
+  - name: Booking
+    description: Operations related to booking service
+paths:
+  '/auth/register':
+    post:
+      summary: Register a new user
+      description: Allows a new user to register with name, email and password.
+      tags: [Auth]
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Ali Akkas
+                email:
+                  type: string
+                  format: email
+                  example: aliakkas@gmail.com
+                password:
+                  type: string
+                  format: password
+                  example: Pass1$23
+              required:
+                - name
+                - email
+                - password
+      responses:
+        '201':
+          description: User registered successfully.
+          content:
+            'application/json':
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    example: 201
+                  message:
+                    type: string
+                    example: User registered successfully.
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        example: '/auth/register'
+                      login:
+                        type: string
+                        example: '/auth/login'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
+  '/auth/login':
+    post:
+      summary: User login
+      description: Allows a registered user to log in with email and password.
+      tags: [Auth]
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: aliakkas@gmail.com
+                password:
+                  type: string
+                  format: password
+                  example: Pass1$23
+              required:
+                - email
+                - password
+      responses:
+        '200':
+          description: Login Successful
+          content:
+            'application/json':
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    example: 200
+                  message:
+                    type: string
+                    example: login Successful
+                  data:
+                    type: object
+                    properties:
+                      session_token:
+                        type: string
+                        description: clerk session token
+                        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        example: '/auth/login'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '500':
+          $ref: '#/components/responses/500'
+  '/auth/password/reset':
+    post:
+      summary: Reset password
+      description: Resets the password using Clerk’s reset token from the email.
+      tags: [Auth]
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              type: object
+              properties:
+                reset_token:
+                  type: string
+                  example: reset_token_example_12345
+                new_password:
+                  type: string
+                  format: password
+                  example: newPass123
+              required:
+                - reset_token
+                - new_password
+      responses:
+        '200':
+          description: Password reset successful
+          content:
+            'application/json':
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    example: 200
+                  message:
+                    type: string
+                    example: Password reset successful.
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        example: '/auth/password/reset'
+                      login:
+                        type: string
+                        example: '/auth/login'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '500':
+          $ref: '#/components/responses/500'
+  '/activities':
+    get:
+      summary: List all activities
+      description: Retrieves a list of all activities with their details.
+      tags: [Activity Tracking]
+      parameters:
+        - $ref: '#/components/parameters/pageParam'
+        - $ref: '#/components/parameters/limitParam'
+        - $ref: '#/components/parameters/sortTypeParam'
+        - $ref: '#/components/parameters/sortByParam'
+        - $ref: '#/components/parameters/searchParam'
+      responses:
+        '200':
+          description: List of activities retrieved successfully.
+          content:
+            'application/json':
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    example: 200
+                  message:
+                    type: string
+                    example: Activities fetched successfully
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Activity'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        format: url
+                        example: '/activities?page=1&limit=10'
+                      next:
+                        type: string
+                        format: url
+                        example: '/activities?page=2&limit=10'
+                      previous:
+                        type: string
+                        format: url
+                        example: '/activities?page=1&limit=10'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
+    post:
+      security:
+        - clerkAuth: []
+      summary: Create a new activity
+      description: Creates a new activity with details like name, type, location, and schedule.
+      tags: [Activity Tracking]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: 'Art Class'
+                description:
+                  type: string
+                  example: 'A class focused on creative art activities for children.'
+                type:
+                  type: string
+                  example: educational
+                location:
+                  type: string
+                  example: Room 101
+                scheduled_date:
+                  type: string
+                  format: date-time
+                  example: 2024-11-05T10:00:00Z
+                duration:
+                  type: integer
+                  description: Duration in minutes
+                  example: 60
+                created_by:
+                  type: string
+                  description: User ID of the creator
+                  example: user123e4567
+              required:
+                - name
+                - description
+                - type
+                - location
+                - scheduled_date
+                - duration
+                - created_by
+      responses:
+        '201':
+          description: Activity created successfully.
+          content:
+            'application/json':
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    example: 201
+                  message:
+                    type: string
+                    example: Activity created successfully.
+                  data:
+                    $ref: '#/components/schemas/Activity'
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        example: '/activities'
+                      service:
+                        type: string
+                        example: '/services'
+                      booking:
+                        type: string
+                        example: '/bookings'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '500':
+          $ref: '#/components/responses/500'
+  '/activities/{id}':
+    get:
+      summary: Get an activity by ID
+      description: Retrieves details of a specific activity.
+      tags: [Activity Tracking]
+      parameters:
+        - $ref: '#/components/parameters/idPathParam'
+      responses:
+        '200':
+          description: 'Activity details retrieved successfully'
+          content:
+            'application/json':
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    example: 200
+                  message:
+                    type: string
+                    example: 'Activity fetched successfully!'
+                  data:
+                    $ref: '#/components/schemas/Activity'
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        format: url
+                        example: 'activities/1'
+                      service:
+                        type: string
+                        format: url
+                        example: 'service/1'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+    put:
+      security:
+        - clerkAuth: []
+      summary: Update an activity
+      description: Updates details of a specific activity.
+      tags: [Activity Tracking]
+      parameters:
+        - $ref: '#/components/parameters/idPathParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: 'Updated Art Class'
+                description:
+                  type: string
+                  example: 'An updated description for the art class.'
+                type:
+                  type: string
+                  example: Recreational
+                location:
+                  type: string
+                  example: Room 102
+                scheduled_date:
+                  type: string
+                  format: date-time
+                  example: '2024-11-06T11:00:00Z'
+                duration:
+                  type: integer
+                  description: Duration in minutes
+                  example: 90
+              required:
+                - name
+                - description
+                - type
+                - location
+                - scheduled_date
+                - duration
+      responses:
+        '200':
+          description: 'Activity updated successfully'
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/ActivityUpdateDTO'
+        '201':
+          description: Activity created successfully.
+          content:
+            'application/json':
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    example: 201
+                  message:
+                    type: string
+                    example: Activity created successfully.
+                  data:
+                    $ref: '#/components/schemas/Activity'
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        example: '/activities'
+                      service:
+                        type: string
+                        example: '/services'
+                      booking:
+                        type: string
+                        example: '/bookings'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+    patch:
+      security:
+        - clerkAuth: []
+      summary: Partially update an activity
+      description: Partially update details of a specific activity.
+      tags: [Activity Tracking]
+      parameters:
+        - $ref: '#/components/parameters/idPathParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: 'Updated Art Class'
+                description:
+                  type: string
+                  example: 'An updated description for the art class.'
+                type:
+                  type: string
+                  example: Recreational
+                location:
+                  type: string
+                  example: Room 102
+                scheduled_date:
+                  type: string
+                  format: date-time
+                  example: '2024-11-06T11:00:00Z'
+                duration:
+                  type: integer
+                  description: Duration in minutes
+                  example: 90
+      responses:
+        '200':
+          description: 'Activity updated successfully'
+          content:
+            'application/json':
+              schema:
+                $ref: '#/components/schemas/ActivityUpdateDTO'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+    delete:
+      security:
+        - clerkAuth: []
+      summary: Delete an activity
+      description: Deletes a specific activity by ID.
+      tags: [Activity Tracking]
+      parameters:
+        - $ref: '#/components/parameters/idPathParam'
+      responses:
+        '204':
+          description: 'Activity deleted successfully'
+        '401':
+          $ref: '#/components/responses/401'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  '/attendance':
+    post:
+      security:
+        - clerkAuth: []
+      summary: Track attendance
+      description: Records check-in and check-out times for an activity.
+      tags: [Activity Tracking]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                activity_id:
+                  type: string
+                  format: uuid
+                  description: The unique ID of the activity
+                  example: 'act123e4567'
+                child_id:
+                  type: string
+                  format: uuid
+                  description: The unique ID of the child
+                  example: 'child123e4567z'
+                check_in:
+                  type: string
+                  format: date-time
+                  example: '2024-11-05T10:05:00Z'
+                check_out:
+                  type: string
+                  format: date-time
+                  example: '2024-11-05T12:00:00Z'
+                # status:
+                #   type: string
+                #   enum:
+                #     - absent
+                #     - present
+                #   example: present
+              required:
+                - activity_id
+                - child_id
+                - check_in
+                - check_out
+                # - status
+      responses:
+        '201':
+          description: Attendance recorded successfully.
+          content:
+            'application/json':
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    example: 201
+                  message:
+                    type: string
+                    example: Attendance recorded successfully.
+                  data:
+                    $ref: '#/components/schemas/Attendance'
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        example: '/attendance'
+                      activity:
+                        type: string
+                        example: '/activities/1'
+                      service:
+                        type: string
+                        example: '/services/1'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '500':
+          $ref: '#/components/responses/500'
+  '/roports':
+    get:
+      security:
+        - clerkAuth: []
+      summary: Get all activity reports
+      description: Get detailed reports on attendance, milestones, and participation.
+      tags: [Activity Tracking]
+      parameters:
+        - in: query
+          name: activity_id
+          required: true
+          schema:
+            type: string
+            example: 7d715dd8ef5b49a6953943z
+      responses:
+        '200':
+          description: 'Activity report retrieved successfully'
+          content:
+            'application/json':
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    example: 200
+                  message:
+                    type: string
+                    example: 'Activity report retrieved successfully!'
+                  data:
+                    $ref: '#/components/schemas/Report'
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        format: url
+                        example: '/reports?activity_id=1'
+                      activity:
+                        type: string
+                        format: url
+                        example: 'activities/1'
+        '401':
+          $ref: '#/components/responses/401'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+    post:
+      security:
+        - clerkAuth: []
+      tags: [Activity Tracking]
+      summary: Generate activity report
+      description: Generates detailed reports on attendance, milestones, and participation.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                activity_id:
+                  type: string
+                  format: uuid
+                  example: '123e4567-e89b-12d3-a456-426614174001'
+                summary:
+                  type: string
+                  example: 'Attendance and milestones summary for the activity.'
+                milestones_reached:
+                  type: string
+                  example: 'Children learned to draw shapes.'
+                attendance_summary:
+                  type: string
+                  example: '20 children attended, 2 were absent.'
+                generated_by:
+                  type: string
+                  format: uuid
+                  example: '123e4567-e89b-12d3-a456-426614174004'
+              required:
+                - activity_id
+                - summary
+                - milestones_reached
+                - attendance_summary
+                - generated_by
+      responses:
+        '201':
+          description: Report generated successfully.
+          content:
+            'application/json':
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    example: 201
+                  message:
+                    type: string
+                    example: Report generated successfully..
+                  data:
+                    $ref: '#/components/schemas/Report'
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        example: '/reports'
+                      activity:
+                        type: string
+                        example: '/activities/1'
+                      service:
+                        type: string
+                        example: '/services/1'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '500':
+          $ref: '#/components/responses/500'
+  '/bookings':
+    post:
+      security:
+        - clerkAuth: []
+      summary: Create a new booking
+      description: Creates a new booking with child details, service type, booking time, and payment status.
+      tags: [Booking]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                child_id:
+                  type: string
+                  format: uuid
+                  description: Unique ID of the child
+                  example: 123e4567f
+                service_id:
+                  type: string
+                  format: uuid
+                  description: Unique ID of the service
+                  example: 123e456x
+                booking_date:
+                  type: string
+                  format: date-time
+                  description: Date and time of the booking
+                  example: '2024-11-01T10:30:00Z'
+                created_by:
+                  type: string
+                  format: uuid
+                  description: ID of the user who created the booking
+                  example: 123e459b
+                payment_id:
+                  type: string
+                  format: uuid
+                  description: Payment ID from the payment service
+                  example: 123e4567d
+              required:
+                - child_id
+                - service_id
+                - booking_date
+                - created_by
+                - payment_id
+      responses:
+        '201':
+          description: Booking created successfully
+          content:
+            'application/json':
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    example: 201
+                  message:
+                    type: string
+                    example: Booking created successfully
+                  data:
+                    $ref: '#/components/schemas/Booking'
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        example: '/bookings'
+                      service:
+                        type: string
+                        example: '/services'
+                      payment:
+                        type: string
+                        example: '/payments'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '500':
+          $ref: '#/components/responses/500'
+    get:
+      security:
+        - clerkAuth: []
+      summary: Get all bookings
+      description: Retrieves a list of all bookings.
+      tags: [Booking]
+      responses:
+        '200':
+          description: 'List of bookings'
+          content:
+            'application/json':
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    example: 200
+                  message:
+                    type: string
+                    example: 'Bookings retrieved successfully!'
+                  data:
+                    $ref: '#/components/schemas/Booking'
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        format: url
+                        example: '/bookings'
+                      service:
+                        type: string
+                        example: '/services/1'
+        '401':
+          $ref: '#/components/responses/401'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  '/availability':
+    get:
+      security:
+        - clerkAuth: []
+      summary: Check service availability
+      description: Checks availability for a given service by date, time, and provider capacity.
+      tags: [Booking]
+      parameters:
+        - in: query
+          name: service_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique ID of the service
+        - in: query
+          name: date
+          required: true
+          schema:
+            type: string
+            format: date
+          description: Date to check availability for this service
+      responses:
+        '200':
+          description: 'Availability status'
+          content:
+            'application/json':
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    example: 200
+                  message:
+                    type: string
+                    example: 'This service is available now!'
+                  data:
+                    type: object
+                    properties:
+                      available_slots:
+                        type: integer
+                        description: Number of available slots
+                        example: 5
+                  links:
+                    type: object
+                    properties:
+                      service:
+                        type: string
+                        example: '/services/1'
+                      booking:
+                        type: string
+                        format: url
+                        example: '/bookings'
+
+        '401':
+          $ref: '#/components/responses/401'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  '/payments':
+    post:
+      security:
+        - clerkAuth: []
+      summary: Process a payment
+      description: Handles payment processing for a booking using a third-party payment provider (e.g.Stripe).
+      tags: [Booking]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                booking_id:
+                  type: string
+                  format: uuid
+                  description: Unique ID of the booking for which the payment is being made
+                  example: "123e4567-e89b-12d3-a456-426614174004"
+                amount:
+                  type: number
+                  format: float
+                  description: Amount to be paid
+                  example: 100.0
+                currency:
+                  type: string
+                  enum:
+                  - USD
+                  - GBP
+                  - EUR
+                  description: Currency code
+                  example: USD
+                payment_method:
+                  type: string
+                  description: Payment method details (e.g., card, bank transfer)
+                  example: card
+              required:
+                - booking_id
+                - amount
+                - currency
+                - payment_method
+      responses:
+        '200':
+          description: Payment processed successfully
+          content:
+            'application/json':
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    example: 200
+                  message:
+                    type: string
+                    example: Payment processed successfully
+                  data:
+                    $ref: '#/components/schemas/Payment'
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        example: '/payments'
+                      service:
+                        type: string
+                        example: '/services/1'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '500':
+          $ref: '#/components/responses/500'
+        
+components:
+  securitySchemes:
+    clerkAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Timestamp:
+      type: object
+      properties:
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - createdAt
+        - updatedAt
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          format: int32
+          example: 2
+        limit:
+          type: integer
+          format: int32
+          example: 10
+        totalPage:
+          type: integer
+          format: int32
+          example: 10
+        totalItems:
+          type: integer
+          format: int32
+          example: 100
+        next:
+          type: integer
+          format: int32
+          example: 3
+        previous:
+          type: integer
+          format: int32
+          example: 1
+      required:
+        - page
+        - limit
+        - totalPage
+        - totalItems
+    Activity:
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              example: 97d715dd8ef5b49a6953943p
+            name:
+              type: string
+              example: 'Art Class'
+            description:
+              type: string
+              example: 'A class focused on creative art activities for children.'
+            type:
+              type: string
+              example: educational
+            location:
+              type: string
+              example: Room 101
+            scheduled_date:
+              type: string
+              format: date-time
+              example: 2024-11-05T10:00:00Z
+            duration:
+              type: integer
+              description: Duration in minutes
+              example: 60
+            created_by:
+              type: string
+              description: User ID of the creator
+              example: user123e4567
+          required:
+            - name
+            - description
+            - type
+            - location
+            - scheduled_date
+            - duration
+            - created_by
+        - $ref: '#/components/schemas/Timestamp'
+    Attendance:
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              example: 97d715dd8ef5b49a6953943p
+            activity_id:
+              type: string
+              format: uuid
+              description: The unique ID of the activity
+              example: 'act123e4567'
+            child_id:
+              type: string
+              format: uuid
+              description: The unique ID of the child
+              example: 'child123e4567z'
+            check_in:
+              type: string
+              format: date-time
+              example: '2024-11-05T10:05:00Z'
+            check_out:
+              type: string
+              format: date-time
+              example: '2024-11-05T12:00:00Z'
+            status:
+              type: string
+              enum:
+                - absent
+                - present
+              example: present
+          required:
+            - activity_id
+            - child_id
+            - check_in
+            - check_out
+            - status
+        - $ref: '#/components/schemas/Timestamp'
+    Report:
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              example: 97d715dd8ef5b49a6953943p
+            activity_id:
+              type: string
+              format: uuid
+              example: '123e4567Z'
+            summary:
+              type: string
+              example: 'Attendance and milestones summary for the activity.'
+            milestones_reached:
+              type: string
+              example: 'Children learned to draw shapes.'
+            attendance_summary:
+              type: string
+              example: '20 children attended, 2 were absent.'
+            generated_by:
+              type: string
+              format: uuid
+              example: '123e4567Y'
+          required:
+            - activity_id
+            - summary
+            - milestones_reached
+            - attendance_summary
+            - generated_by
+        - $ref: '#/components/schemas/Timestamp'
+    Booking:
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              example: 97d715dd8ef5b49a6953943p
+            child_id:
+              type: string
+              format: uuid
+              description: Unique ID of the child
+              example: '123e4567-e89b-12d3-a456-426614174000'
+            service_id:
+              type: string
+              format: uuid
+              description: Unique ID of the service
+              example: '123e4567-e89b-12d3-a456-426614174001'
+            booking_date:
+              type: string
+              format: date-time
+              description: Date and time of the booking
+              example: '2024-11-01T10:30:00Z'
+            status:
+              type: string
+              enum: [pending, confirmed, cancelled]
+              description: Status of the booking
+              example: 'pending'
+            created_by:
+              type: string
+              format: uuid
+              description: ID of the user who created the booking
+              example: '123e4567-e89b-12d3-a456-426614174002'
+            payment_id:
+              type: string
+              format: uuid
+              description: Payment ID from the payment service
+              example: '123e4567-e89b-12d3-a456-426614174003'
+          required:
+            - child_id
+            - service_id
+            - booking_date
+            - status
+            - created_by
+            - payment_id
+        - $ref: '#/components/schemas/Timestamp'
+    Payment:
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              example: 97d715dd8ef5b49a6953943p
+            booking_id:
+              type: string
+              format: uuid
+              description: Unique ID of the booking for which the payment is being made
+              example: "123e4567-e89b-12d3-a456-426614174004"
+            amount:
+              type: number
+              format: float
+              description: Amount to be paid
+              example: 100.0
+            currency:
+              type: string
+              enum:
+              - USD
+              - GBP
+              - EUR
+              description: Currency code
+              example: USD
+            status:
+              type: string
+              enum: [paid, pending, failed]
+              description: Status of the payment
+              example: paid
+            transaction_id:
+              type: string
+              format: uuid
+              description: Unique ID of the payment transaction
+              example: 123e4567e89b
+            payment_method:
+              type: string
+              description: Payment method details (e.g., card, bank transfer)
+              example: card
+          required:
+            - booking_id
+            - amount
+            - currency
+            - status
+            - transaction_id
+            - payment_method
+        - $ref: '#/components/schemas/Timestamp'
+    ActivityUpdateDTO:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+          example: 200
+        message:
+          type: string
+          example: 'Activity updated successfully!'
+        data:
+          $ref: '#/components/schemas/Activity'
+        links:
+          type: object
+          properties:
+            self:
+              type: string
+              format: url
+              example: 'activities/1'
+            service:
+              type: string
+              format: url
+              example: 'services/1'
+
+  responses:
+    '500':
+      description: 'Internal Server Error'
+      content:
+        'application/json':
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+                example: 500
+              error:
+                type: string
+                example: Internal Server Error!
+              message:
+                type: string
+                example: We are sorry for the inconvenience. Please try again later...
+    '400':
+      description: 'Bad Request'
+      content:
+        'application/json':
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+                example: 400
+              error:
+                type: string
+                example: Bad Request
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    field:
+                      type: string
+                      example: input field name
+                    message:
+                      type: string
+                      example: Invalid field
+                    in:
+                      type: string
+                      enum: [query, body]
+                      example: body
+    '401':
+      description: 'Unauthorized'
+      content:
+        'application/json':
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+                example: 401
+              error:
+                type: string
+                example: Unauthorized
+              message:
+                type: string
+                example: You are not authorized to access this resource!
+    '404':
+      description: 'Resource Not Found'
+      content:
+        'application/json':
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+                example: 404
+              error:
+                type: string
+                example: Not Found
+              message:
+                type: string
+                example: The requested resource was not found!
+  parameters:
+    pageParam:
+      name: page
+      in: query
+      description: The page number
+      required: true
+      schema:
+        type: integer
+        format: int32
+        example: 1
+    limitParam:
+      name: limit
+      in: query
+      description: The number of items per page
+      required: true
+      schema:
+        type: integer
+        format: int32
+        example: 10
+    sortTypeParam:
+      name: sort_type
+      in: query
+      description: The sort type (asc or dsc)
+      required: true
+      schema:
+        type: string
+        enum: [asc, dsc]
+        example: dsc
+    sortByParam:
+      name: sort_by
+      in: query
+      description: The field to sort by
+      required: true
+      schema:
+        type: string
+        example: updatedAt
+    searchParam:
+      name: search
+      in: query
+      description: The search query
+      required: true
+      schema:
+        type: string
+        example: Art
+    idPathParam:
+      name: id
+      in: path
+      description: Activity ID
+      required: true
+      schema:
+        type: string
+        example: 97d715dd8ef5b49a6953943p
