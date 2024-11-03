@@ -38,22 +38,8 @@ const clerkClient = createClerkClient({
 
 app.use(clerkMiddleware({ clerkClient }));
 
-const withAuth = (req: Request, res: Response, next: NextFunction) => {
-  const { userId } = req.auth || {};
-
-  const auth = { userId };
-
-  // If the user is not authenticated, return an empty object
-  req.auth = userId ? auth : {};
-  next();
-};
-
 // Routes
 app.use('/api/v1', routesV1);
-
-app.get('/protected', withAuth, (req: Request, res: Response) => {
-  res.json(req.auth);
-});
 
 // Health check
 app.get('/health', (_req: Request, res: Response) => {

@@ -27,15 +27,16 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
       emailAddress,
     });
 
-    const userEmail = data[0].emailAddresses[0].emailAddress;
-    const findEmail = emailAddress.find((email) => email === userEmail);
+    // Check if a user with the given email address exists
+    const userEmail = data[0]?.emailAddresses[0]?.emailAddress;
 
-    if (userEmail === findEmail) {
+    if (userEmail && userEmail === emailAddress[0]) {
       const error = CustomError.badRequest({
-        message: 'Email already exist!',
+        message: 'Email already exists!',
         errors: 'Invalid request body',
         hints: 'Please check your email and try again later',
       });
+
       res.status(error.status).json(error);
       return;
     }

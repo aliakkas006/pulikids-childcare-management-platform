@@ -155,6 +155,8 @@ paths:
           $ref: '#/components/responses/500'
   '/auth/logout':
     post:
+      security:
+        - clerkAuth: []
       summary: User logout
       description: Allows a logged in user to log out with signInTokenId.
       tags: [Auth]
@@ -206,10 +208,12 @@ paths:
           $ref: '#/components/responses/400'
         '500':
           $ref: '#/components/responses/500'
-  '/auth/reset-password':
+  '/auth/assign-role':
     post:
-      summary: Reset password
-      description: Resets the password using Clerk’s reset token from the email.
+      security:
+        - clerkAuth: []
+      summary: Assign Roles to a User
+      description: Endpoint to Assign Roles to a User
       tags: [Auth]
       requestBody:
         content:
@@ -217,19 +221,66 @@ paths:
             schema:
               type: object
               properties:
-                reset_token:
+                userId:
                   type: string
-                  example: reset_token_example_12345
-                new_password:
+                  example: user_2oKIGOFxi3BkpN6mzatWBGCbfss
+                role:
+                  type: string
+                  example: admin
+              required:
+                - userId
+                - role
+      responses:
+        '200':
+          description: Assigned admin role to user with ID
+          content:
+            'application/json':
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    example: 201
+                  message:
+                    type: string
+                    example: Assigned admin role to user with ID
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        example: '/auth/login'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
+  '/auth/reset-password':
+    post:
+      security:
+        - clerkAuth: []
+      summary: Reset password
+      description: Resets the password using Clerk
+      tags: [Auth]
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                  example: user_1254zdfaa44z
+                newPassword:
                   type: string
                   format: password
                   example: newPass123
               required:
-                - reset_token
+                - userId
                 - new_password
       responses:
         '200':
-          description: Password reset successful
+          description: Password reset successfully.
           content:
             'application/json':
               schema:

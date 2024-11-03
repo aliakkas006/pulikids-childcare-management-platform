@@ -15,3 +15,13 @@ export const UserLoginSchema = z.object({
 export const UserLogoutSchema = z.object({
   signInTokenId: z.string(),
 });
+
+export const RoleAssignSchema = z.object({
+  userId: z.string(),
+  role: z.enum(['admin', 'childcare_provider', 'parent', 'teacher']),
+});
+
+export const PasswordResetSchema = z.object({
+  userId: z.string(),
+  newPassword: z.string().min(8).max(20),
+});
