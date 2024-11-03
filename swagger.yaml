@@ -22,7 +22,7 @@ paths:
   '/auth/register':
     post:
       summary: Register a new user
-      description: Allows a new user to register with name, email and password.
+      description: Allows a new user to register with firstName, lastName, emailAddress and password.
       tags: [Auth]
       requestBody:
         content:
@@ -30,20 +30,26 @@ paths:
             schema:
               type: object
               properties:
-                name:
+                firstName:
                   type: string
-                  example: Ali Akkas
-                email:
+                  example: Ali
+                lastName:
                   type: string
-                  format: email
-                  example: aliakkas@gmail.com
+                  example: Akkas
+                emailAddress:
+                  type: array
+                  items:
+                    type: string
+                    format: email
+                    example: aliakkas@gmail.com
                 password:
                   type: string
                   format: password
                   example: Pass1$23
               required:
-                - name
-                - email
+                - firstName
+                - lastName
+                - emailAddress
                 - password
       responses:
         '201':
@@ -60,6 +66,17 @@ paths:
                   message:
                     type: string
                     example: User registered successfully.
+                  data:
+                    properties:
+                      userId:
+                        type: string
+                        example: user_2oJs4F5Qf5CekFv9IAJcU9JZi1x
+                      name:
+                        type: string
+                        example: Ali Akkas
+                      email:
+                        type: string
+                        example: aliakkas@gmail.com
                   links:
                     type: object
                     properties:
@@ -71,6 +88,8 @@ paths:
                         example: '/auth/login'
         '400':
           $ref: '#/components/responses/400'
+        '422':
+          $ref: '#/components/responses/422'
         '500':
           $ref: '#/components/responses/500'
   '/auth/login':
@@ -84,16 +103,18 @@ paths:
             schema:
               type: object
               properties:
-                email:
-                  type: string
-                  format: email
-                  example: aliakkas@gmail.com
+                emailAddress:
+                  type: array
+                  items:
+                    type: string
+                    format: email
+                    example: aliakkas@gmail.com
                 password:
                   type: string
                   format: password
                   example: Pass1$23
               required:
-                - email
+                - emailAddress
                 - password
       responses:
         '200':
@@ -113,6 +134,9 @@ paths:
                   data:
                     type: object
                     properties:
+                      verified:
+                        type: boolean
+                        example: true
                       session_token:
                         type: string
                         description: clerk session token
@@ -129,7 +153,60 @@ paths:
           $ref: '#/components/responses/401'
         '500':
           $ref: '#/components/responses/500'
-  '/auth/password/reset':
+  '/auth/logout':
+    post:
+      summary: User logout
+      description: Allows a logged in user to log out with signInTokenId.
+      tags: [Auth]
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              type: object
+              properties:
+                signInTokenId:
+                  type: string
+                  example: sit_2oKIGOFxi3BkpN6mzatWBGCbfss
+              required:
+                - signInTokenId
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            'application/json':
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    example: 200
+                  message:
+                    type: string
+                    example: Logout successful
+                  data:
+                    type: object
+                    properties:
+                      userId:
+                        type: string
+                        example: user_2oIsgNGDsvpLDP37VIR97v58HLK
+                      status:
+                        type: string
+                        example: 'revoked'
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        example: '/auth/login'
+                      login:
+                        type: string
+                        example: '/auth/login'
+        '400':
+          $ref: '#/components/responses/400'
+        '500':
+          $ref: '#/components/responses/500'
+  '/auth/reset-password':
     post:
       summary: Reset password
       description: Resets the password using Clerk’s reset token from the email.
@@ -891,7 +968,7 @@ paths:
                   type: string
                   format: uuid
                   description: Unique ID of the booking for which the payment is being made
-                  example: "123e4567-e89b-12d3-a456-426614174004"
+                  example: '123e4567-e89b-12d3-a456-426614174004'
                 amount:
                   type: number
                   format: float
@@ -900,9 +977,9 @@ paths:
                 currency:
                   type: string
                   enum:
-                  - USD
-                  - GBP
-                  - EUR
+                    - USD
+                    - GBP
+                    - EUR
                   description: Currency code
                   example: USD
                 payment_method:
@@ -946,7 +1023,7 @@ paths:
           $ref: '#/components/responses/401'
         '500':
           $ref: '#/components/responses/500'
-        
+
 components:
   securitySchemes:
     clerkAuth:
@@ -1163,7 +1240,7 @@ components:
               type: string
               format: uuid
               description: Unique ID of the booking for which the payment is being made
-              example: "123e4567-e89b-12d3-a456-426614174004"
+              example: '123e4567-e89b-12d3-a456-426614174004'
             amount:
               type: number
               format: float
@@ -1172,9 +1249,9 @@ components:
             currency:
               type: string
               enum:
-              - USD
-              - GBP
-              - EUR
+                - USD
+                - GBP
+                - EUR
               description: Currency code
               example: USD
             status:
@@ -1304,6 +1381,23 @@ components:
               message:
                 type: string
                 example: The requested resource was not found!
+    '422':
+      description: 'Resource Not Found'
+      content:
+        'application/json':
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+                example: 422
+              error:
+                type: string
+                example: Unprocessable Entity
+              message:
+                type: string
+                example: The server was unable to process the request because it contains invalid data.
   parameters:
     pageParam:
       name: page

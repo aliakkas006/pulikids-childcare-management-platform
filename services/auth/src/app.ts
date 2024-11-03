@@ -6,6 +6,7 @@ import { clerkMiddleware } from '@clerk/express';
 import CustomError from '@/utils/Error';
 import setCorrelationId from '@/config/setCorrelationId';
 import { apiUrl, publishableKey, secretKey } from '@/config/clerkConfig';
+import routesV1 from '@/v1/routes';
 
 const app = express();
 
@@ -46,6 +47,9 @@ const withAuth = (req: Request, res: Response, next: NextFunction) => {
   req.auth = userId ? auth : {};
   next();
 };
+
+// Routes
+app.use('/api/v1', routesV1);
 
 app.get('/protected', withAuth, (req: Request, res: Response) => {
   res.json(req.auth);
