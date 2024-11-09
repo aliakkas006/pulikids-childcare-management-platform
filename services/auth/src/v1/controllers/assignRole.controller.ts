@@ -1,8 +1,8 @@
 import { Response, Request, NextFunction } from 'express';
-import { clerkClient } from '@clerk/express';
-import { RoleAssignSchema } from '@/schemas';
+import { RoleAssignSchema } from '@/v1/schemas';
 import CustomError from '@/utils/Error';
 import assignUserRole from '@/utils/assignRole';
+import { clerkClient } from '@clerk/express';
 
 const assignRole = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -22,6 +22,9 @@ const assignRole = async (req: Request, res: Response, next: NextFunction) => {
 
     // Extract data only if parsing was successful
     const { userId, role } = parsedBody.data;
+
+    // check user
+    await clerkClient.users.getUser(userId);
 
     // Update the user's metadata with the new role
     assignUserRole(userId, role);

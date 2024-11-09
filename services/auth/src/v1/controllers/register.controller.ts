@@ -1,6 +1,6 @@
 import { Response, Request, NextFunction } from 'express';
 import { clerkClient } from '@clerk/express';
-import { UserCreateSchema } from '@/schemas';
+import { UserCreateSchema } from '@/v1/schemas';
 import CustomError from '@/utils/Error';
 
 const register = async (req: Request, res: Response, next: NextFunction) => {

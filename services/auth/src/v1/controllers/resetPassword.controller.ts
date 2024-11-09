@@ -1,6 +1,6 @@
 import { Response, Request, NextFunction } from 'express';
 import { clerkClient } from '@clerk/express';
-import { PasswordResetSchema } from '@/schemas';
+import { PasswordResetSchema } from '@/v1/schemas';
 import CustomError from '@/utils/Error';
 
 const resetPassword = async (

@@ -1,26 +1,12 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
-import { createClerkClient } from '@clerk/backend';
-import { clerkMiddleware } from '@clerk/express';
 import CustomError from '@/utils/Error';
 import setCorrelationId from '@/config/setCorrelationId';
-import { apiUrl, publishableKey, secretKey } from '@/config/clerkConfig';
+// import { apiUrl, publishableKey, secretKey } from '@/config/clerkConfig';
 import routesV1 from '@/v1/routes';
 
 const app = express();
-
-// Define the structure of the `auth` object
-interface Auth {
-  userId?: string;
-}
-
-// Extend the Request interface to include the `auth` property
-declare module 'express-serve-static-core' {
-  interface Request {
-    auth?: Auth;
-  }
-}
 
 app.use([
   express.json(),
@@ -30,20 +16,14 @@ app.use([
   morgan('dev'),
 ]);
 
-const clerkClient = createClerkClient({
-  publishableKey,
-  apiUrl,
-  secretKey,
-});
-
-app.use(clerkMiddleware({ clerkClient }));
-
 // Routes
 app.use('/api/v1', routesV1);
 
 // Health check
 app.get('/health', (_req: Request, res: Response) => {
-  res.status(200).json({ message: '🚀 Auth Service is up and running!' });
+  res
+    .status(200)
+    .json({ message: '🚀 Activity Tracking Service is up and running!' });
 });
 
 // Not found handler
@@ -54,9 +34,11 @@ app.use((req: Request, res: Response) => {
     hints: 'Please check the URL and try again',
   });
 
-  res
-    .status(error.status)
-    .json({ ...error, status: undefined, trace_id: req.headers['x-trace-id'] });
+  res.status(error.status).json({
+    ...error,
+    status: undefined,
+    trace_id: req.headers['x-trace-id'],
+  });
 });
 
 // Global error handler

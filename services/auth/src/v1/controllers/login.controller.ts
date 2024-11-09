@@ -1,6 +1,6 @@
 import { Response, Request, NextFunction } from 'express';
 import { clerkClient } from '@clerk/express';
-import { UserLoginSchema } from '@/schemas';
+import { UserLoginSchema } from '@/v1/schemas';
 import CustomError from '@/utils/Error';
 
 const login = async (req: Request, res: Response, next: NextFunction) => {

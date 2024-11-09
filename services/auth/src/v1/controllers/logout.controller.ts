@@ -1,6 +1,6 @@
 import { Response, Request, NextFunction } from 'express';
 import { clerkClient } from '@clerk/express';
-import { UserLogoutSchema } from '@/schemas';
+import { UserLogoutSchema } from '@/v1/schemas';
 import CustomError from '@/utils/Error';
 
 const logout = async (req: Request, res: Response, next: NextFunction) => {
@@ -25,35 +25,7 @@ const logout = async (req: Request, res: Response, next: NextFunction) => {
     const { userId, status } = await clerkClient.signInTokens.revokeSignInToken(
       signInTokenId
     );
-
-    // const { totalCount, data } = await clerkClient.users.getUserList({
-    //   emailAddress,
-    // });
-
-    // if (totalCount === 0) {
-    //   const error = CustomError.unauthorized({
-    //     message: 'You are not authorized to access this resource!',
-    //     errors: 'Invalid credentials',
-    //     hints: 'Please check your email and try again later',
-    //   });
-    //   res.status(error.status).json(error);
-    //   return;
-    // }
-
-    // const { id } = data[0];
-
-    // // Verify password
-    // const { verified } = await clerkClient.users.verifyPassword({
-    //   userId: id,
-    //   password,
-    // });
-
-    // const expiresInSeconds = 60 * 60 * 24 * 7; // 1 week
-    // const { token } = await clerkClient.signInTokens.createSignInToken({
-    //   userId: id,
-    //   expiresInSeconds,
-    // });
-
+    
     // Generate response
     const response = {
       code: 200,
