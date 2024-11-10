@@ -24,6 +24,7 @@ class ActivityService {
       throw err;
     }
   }
+  
   /**
    * Creates a new milestone for the activity
    */

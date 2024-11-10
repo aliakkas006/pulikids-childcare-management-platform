@@ -29,9 +29,21 @@ services:
   #   depends_on:
   #     - mongodb
 
+  # MailHog -----------------------------------
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - '1025:1025' # SMTP port
+      - '8025:8025' # Web UI (HTTP) port
+    networks:
+      - pulikids-childcare-management-system-network
+    volumes:
+      - mailhog-data:/var/lib/mailhog
+
 networks:
   pulikids-childcare-management-system-network:
     driver: bridge
 
 volumes:
   mongodb_data:
+  mailhog-data:
