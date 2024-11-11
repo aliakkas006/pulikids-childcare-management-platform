@@ -40,6 +40,36 @@ services:
     volumes:
       - mailhog-data:/var/lib/mailhog
 
+  # Redis-Stack -------------------------------
+  redis-stack:
+    image: redis/redis-stack:latest
+    environment:
+      - REDIS_ARGS=--save 900 1
+      - REDIS_HOST=redis-stack
+      - REDIS_PORT=6379
+    ports:
+      - '6379:6379'
+      - '8002:8001'
+    networks:
+      - pulikids-childcare-management-system-network
+    volumes:
+      - redis-data:/var/lib/redis-stack
+
+  # Consul ---------------------------
+  consul:
+    image: consul:1.15.4
+    environment:
+      - CONSUL_BIND_INTERFACE=eth0
+    ports:
+      - '8500:8500'
+      - '8600:8600/udp'
+    command: agent -server -bootstrap-expect=1 -client=0.0.0.0 -ui
+    volumes:
+      - consul-data:/consul/data
+    networks:
+      - pulikids-childcare-management-system-network
+    restart: always
+
 networks:
   pulikids-childcare-management-system-network:
     driver: bridge
@@ -47,3 +77,5 @@ networks:
 volumes:
   mongodb_data:
   mailhog-data:
+  redis-data:
+  consul-data:

@@ -17,7 +17,7 @@ app.use([
 ]);
 
 // Routes
-app.use('/api/v1', routesV1);
+app.use(routesV1);
 
 // Health check
 app.get('/health', (_req: Request, res: Response) => {

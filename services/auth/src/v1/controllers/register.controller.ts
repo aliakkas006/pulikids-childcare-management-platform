@@ -46,7 +46,7 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
       firstName,
       lastName,
       emailAddress,
-      password
+      password,
     });
 
     // Generate response
